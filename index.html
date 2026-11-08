@@ -27,11 +27,26 @@
     .search button { border:0; background:#2767ed; color:white; font-weight:750; border-radius:11px; padding:0 20px; min-height:44px; transition:background .15s; }
     .search button:hover { background:#1756df; }
     .search button:disabled { opacity:.58; cursor:progress; }
-    .toolbar { display:flex; align-items:center; flex-wrap:wrap; gap:10px; margin:25px 0 16px; }
-    .toolbar-title { font-size:11px; font-weight:800; text-transform:uppercase; letter-spacing:1.25px; color:#778299; margin-right:3px; }
-    .sorts { display:flex; gap:7px; flex-wrap:wrap; }
-    .sorts button { background:#fff; border:1px solid #e0e5ed; color:#49566e; padding:10px 13px; border-radius:100px; font-size:13px; font-weight:700; transition:all .15s; }
-    .sorts button[aria-pressed="true"] { color:#fff; background:#253754; border-color:#253754; box-shadow:0 3px 10px #213b6529; }
+    [hidden] { display:none !important; }
+    .sort-panel { margin:25px 0 16px; padding:16px; background:#eef3fb9c; border:1px solid #dae3f0; border-radius:17px; }
+    .sort-head { display:flex; align-items:start; justify-content:space-between; gap:12px; margin-bottom:12px; }
+    .toolbar-title { font-size:11px; font-weight:800; text-transform:uppercase; letter-spacing:1.25px; color:#63718b; margin-bottom:5px; }
+    .sort-help { font-size:12px; color:#6c7890; line-height:1.4; margin:0; }
+    #add-sort { border:1px solid #cbdaf5; background:#fff; color:#2761c5; border-radius:10px; padding:10px 12px; font-size:12px; font-weight:750; white-space:nowrap; }
+    #add-sort:disabled { opacity:.4; cursor:default; }
+    .sort-levels { display:grid; gap:9px; }
+    .sort-level { background:white; border:1px solid #dee5f1; border-radius:12px; padding:10px; }
+    .sort-level-main { display:grid; grid-template-columns:26px minmax(0,1fr) auto; align-items:center; gap:8px; }
+    .sort-number { width:26px; height:26px; display:grid; place-items:center; background:#e6edfd; color:#385da6; border-radius:8px; font-weight:800; font-size:12px; }
+    .sort-field { width:100%; min-width:0; padding:9px 7px; font-size:14px; font-weight:650; }
+    .sort-actions { display:flex; gap:3px; }
+    .sort-action { width:30px; height:32px; border:1px solid #e0e6ef; background:#f8faff; color:#566783; border-radius:8px; padding:0; font-size:15px; font-weight:700; }
+    .sort-action:disabled { color:#c0c7d1; background:#fafbfc; cursor:default; }
+    .sort-action.remove { color:#b25969; }
+    .sort-level-meta { display:flex; justify-content:space-between; align-items:center; gap:8px; margin:8px 0 0 34px; }
+    .sort-role { font-size:11px; font-weight:750; color:#8a96ab; }
+    .sort-direction { border:1px solid #dbe5f6; background:#f4f7ff; color:#355b9a; border-radius:8px; padding:6px 9px; font-size:12px; font-weight:700; }
+    .sort-foot { color:#77849a; font-size:11px; margin:11px 2px 0; line-height:1.45; }
     .settings { display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:12px; min-height:45px; margin:0 0 15px; }
     .filter { display:flex; align-items:center; gap:8px; color:#5c6980; font-size:13px; }
     select { background:#fff; color:#263653; border:1px solid #dee4ed; border-radius:9px; padding:9px 8px; font-size:13px; }
@@ -52,7 +67,7 @@
     .footnote a { color:#5472a5; }
     .busy { display:inline-block; width:15px; height:15px; border:2px solid #c3d2f5; border-top-color:#2868e7; border-radius:50%; animation:spin .75s linear infinite; vertical-align:-3px; margin-right:6px; }
     @keyframes spin { to { transform:rotate(360deg); } }
-    @media(max-width:560px) { main { padding-top:25px; } header { margin-bottom:33px; } .app { grid-template-columns:55px minmax(0,1fr); gap:12px; padding:14px; } .app-icon { width:55px; height:55px; border-radius:13px; } .view { grid-column:2; justify-self:start; margin-top:0; } .toolbar { align-items:start; } .toolbar-title { padding-top:12px; } .sorts { flex:1; } .sorts button { padding:9px 10px; } .search button { padding:0 14px; } }
+    @media(max-width:560px) { main { padding-top:25px; } header { margin-bottom:33px; } .app { grid-template-columns:55px minmax(0,1fr); gap:12px; padding:14px; } .app-icon { width:55px; height:55px; border-radius:13px; } .view { grid-column:2; justify-self:start; margin-top:0; } .search button { padding:0 14px; } .sort-panel { padding:12px; } .sort-action { width:28px; } }
     @media(prefers-reduced-motion:reduce) { *,*:before,*:after { animation-duration:.01ms!important; transition-duration:.01ms!important; } }
   </style>
 </head>
@@ -68,16 +83,14 @@
     <input id="query" type="search" placeholder="Try audio recorder, hiking maps…" aria-label="Search apps" autocomplete="off" maxlength="120" required>
     <button id="search-button" type="submit">Search</button>
   </form>
-  <div class="toolbar" aria-label="Sort results">
-    <span class="toolbar-title">Sort by</span>
-    <div class="sorts" id="sorts">
-      <button type="button" data-sort="rating" aria-pressed="true">★ Top rated</button>
-      <button type="button" data-sort="reviews" aria-pressed="false">Most reviewed</button>
-      <button type="button" data-sort="newest" aria-pressed="false">Newest apps</button>
-      <button type="button" data-sort="updated" aria-pressed="false">Recent updates</button>
-      <button type="button" data-sort="relevance" aria-pressed="false">Relevance</button>
+  <section class="sort-panel" aria-label="Sort priorities">
+    <div class="sort-head">
+      <div><div class="toolbar-title">Sort priorities</div><p class="sort-help">Each level breaks ties in the level above it.</p></div>
+      <button type="button" id="add-sort">+ Add level</button>
     </div>
-  </div>
+    <div class="sort-levels" id="sort-levels"></div>
+    <p class="sort-foot">Customer ratings are grouped to the displayed 0.1-star precision, so secondary sorting works within each visible rating group. Priorities are remembered on this device.</p>
+  </section>
   <div class="settings">
     <label class="filter" id="rating-filter">Minimum ratings
       <select id="minimum-ratings" aria-label="Minimum rating count">
@@ -98,14 +111,36 @@
     form: document.querySelector('#search-form'),
     query: document.querySelector('#query'),
     button: document.querySelector('#search-button'),
-    sorts: document.querySelector('#sorts'),
+    levels: document.querySelector('#sort-levels'),
+    add: document.querySelector('#add-sort'),
     min: document.querySelector('#minimum-ratings'),
     filter: document.querySelector('#rating-filter'),
     count: document.querySelector('#count'),
     results: document.querySelector('#results')
   };
   let allApps = [];
-  let sortMode = 'rating';
+  const SORT_FIELDS = [
+    {key:'rating',label:'Customer rating',direction:'desc'},
+    {key:'reviews',label:'Number of ratings',direction:'desc'},
+    {key:'newest',label:'Release date',direction:'desc'},
+    {key:'updated',label:'Last updated',direction:'desc'},
+    {key:'category',label:'Category',direction:'asc'},
+    {key:'name',label:'App name',direction:'asc'},
+    {key:'price',label:'App price',direction:'asc'},
+    {key:'relevance',label:'Search relevance',direction:'asc'}
+  ];
+  const SORT_STORAGE = 'appscope.sort-levels.v2';
+  const collator = new Intl.Collator('en-US',{sensitivity:'base',numeric:true});
+  function loadSortLevels() {
+    try {
+      const saved = JSON.parse(localStorage.getItem(SORT_STORAGE));
+      if (Array.isArray(saved) && saved.length && saved.length <= SORT_FIELDS.length &&
+          saved.every(x => x && SORT_FIELDS.some(f=>f.key===x.key) && ['asc','desc'].includes(x.direction)) &&
+          new Set(saved.map(x=>x.key)).size === saved.length) return saved;
+    } catch (_) { /* Storage can be unavailable in private browsing. */ }
+    return [{key:'rating',direction:'desc'},{key:'reviews',direction:'desc'}];
+  }
+  let sortLevels = loadSortLevels();
   let lastQuery = '';
   let searchNumber = 0;
   let jsonpNumber = 0;
@@ -161,21 +196,98 @@
     box.append(make('strong','',heading),document.createElement('br'),document.createTextNode(message));
     els.results.append(box);
   }
-  function sortApps(apps) {
-    const result = apps.map((app,index) => ({app,index}));
-    if (sortMode === 'rating') {
-      const minimum = numeric(els.min.value);
-      return result.filter(({app}) => numeric(app.userRatingCount) >= minimum)
-        .sort((a,b) => numeric(b.app.averageUserRating)-numeric(a.app.averageUserRating) || numeric(b.app.userRatingCount)-numeric(a.app.userRatingCount) || a.index-b.index)
-        .map(({app})=>app);
+  function sortValue(app, index, key) {
+    switch (key) {
+      case 'rating': {
+        const rating = numeric(app.averageUserRating);
+        return rating > 0 ? Number(rating.toFixed(1)) : null;
+      }
+      case 'reviews': return numeric(app.userRatingCount);
+      case 'newest': return asDate(app.releaseDate) || null;
+      case 'updated': return asDate(app.currentVersionReleaseDate) || null;
+      case 'category': return app.primaryGenreName?.trim() || null;
+      case 'name': return app.trackName?.trim() || null;
+      case 'price': return app.price == null ? null : numeric(app.price);
+      case 'relevance': return index;
+      default: return null;
     }
-    const compare = {
-      reviews:(a,b) => numeric(b.userRatingCount)-numeric(a.userRatingCount) || numeric(b.averageUserRating)-numeric(a.averageUserRating),
-      newest:(a,b) => asDate(b.releaseDate)-asDate(a.releaseDate),
-      updated:(a,b) => asDate(b.currentVersionReleaseDate)-asDate(a.currentVersionReleaseDate),
-      relevance:() => 0
-    }[sortMode];
-    return result.sort((a,b)=>compare(a.app,b.app)||a.index-b.index).map(({app})=>app);
+  }
+  function compareLevel(a, b, level) {
+    const x = sortValue(a.app,a.index,level.key);
+    const y = sortValue(b.app,b.index,level.key);
+    if (x == null || y == null) return x == null && y == null ? 0 : x == null ? 1 : -1;
+    const comparison = typeof x === 'string' ? collator.compare(x,y) : Math.sign(x-y);
+    return level.direction === 'desc' ? -comparison : comparison;
+  }
+  function sortApps(apps) {
+    const ratingUsed = sortLevels.some(x=>x.key==='rating');
+    const minimum = ratingUsed ? numeric(els.min.value) : 0;
+    return apps.map((app,index)=>({app,index}))
+      .filter(({app})=>numeric(app.userRatingCount)>=minimum)
+      .sort((a,b)=>{
+        for (const level of sortLevels) {
+          const comparison = compareLevel(a,b,level);
+          if (comparison) return comparison;
+        }
+        return a.index-b.index;
+      }).map(({app})=>app);
+  }
+  function orderLabel(level) {
+    const high = level.direction === 'desc';
+    switch(level.key) {
+      case 'rating': return high ? '↓ Highest first' : '↑ Lowest first';
+      case 'reviews': return high ? '↓ Most first' : '↑ Fewest first';
+      case 'newest': return high ? '↓ Newest first' : '↑ Oldest first';
+      case 'updated': return high ? '↓ Recent first' : '↑ Oldest first';
+      case 'category': case 'name': return high ? '↓ Z → A' : '↑ A → Z';
+      case 'price': return high ? '↓ Expensive first' : '↑ Cheapest first';
+      case 'relevance': return high ? '↓ Least relevant first' : '↑ Best match first';
+    }
+  }
+  function sortChanged() {
+    try { localStorage.setItem(SORT_STORAGE,JSON.stringify(sortLevels)); } catch (_) {}
+    renderSortControls();
+    render();
+  }
+  function renderSortControls() {
+    els.levels.replaceChildren();
+    const used = new Set(sortLevels.map(x=>x.key));
+    sortLevels.forEach((level,index)=>{
+      const item = make('div','sort-level');
+      const main = make('div','sort-level-main');
+      const ordinal = make('span','sort-number',String(index+1));
+      const field = make('select','sort-field');
+      field.dataset.sortField=String(index);
+      field.setAttribute('aria-label','Sort field at priority '+(index+1));
+      SORT_FIELDS.forEach(info=>{
+        const option = make('option','',info.label);
+        option.value=info.key;
+        option.disabled=info.key!==level.key && used.has(info.key);
+        option.selected=info.key===level.key;
+        field.append(option);
+      });
+      const actions = make('div','sort-actions');
+      for (const [action,symbol,label,disabled] of [
+        ['up','↑','Move priority '+(index+1)+' up',index===0],
+        ['down','↓','Move priority '+(index+1)+' down',index===sortLevels.length-1],
+        ['remove','×','Remove priority '+(index+1),sortLevels.length===1]
+      ]) {
+        const button=make('button','sort-action'+(action==='remove'?' remove':''),symbol);
+        button.type='button'; button.dataset.action=action; button.dataset.index=String(index);
+        button.setAttribute('aria-label',label); button.title=label; button.disabled=disabled;
+        actions.append(button);
+      }
+      main.append(ordinal,field,actions);
+      const meta=make('div','sort-level-meta');
+      meta.append(make('span','sort-role',['Primary','Secondary','Tertiary'][index]||'Level '+(index+1)));
+      const direction=make('button','sort-direction',orderLabel(level));
+      direction.type='button'; direction.dataset.action='direction'; direction.dataset.index=String(index);
+      direction.setAttribute('aria-label','Reverse sorting direction for priority '+(index+1));
+      meta.append(direction);
+      item.append(main,meta);
+      els.levels.append(item);
+    });
+    els.add.disabled=sortLevels.length===SORT_FIELDS.length;
   }
   function renderApp(app) {
     const card = make('article','app');
@@ -189,8 +301,12 @@
     stats.append(make('span',rating ? 'rating' : '',rating ? '★ '+rating.toFixed(1)+' / 5' : 'Unrated'));
     stats.append(make('span','dot',numberText(app.userRatingCount)+' ratings'));
     if (app.primaryGenreName) stats.append(make('span','dot',app.primaryGenreName));
-    const dateField = sortMode === 'updated' ? app.currentVersionReleaseDate : app.releaseDate;
-    stats.append(make('span','dot',(sortMode === 'updated' ? 'Updated ' : 'Released ')+dateText(dateField)));
+    stats.append(make('span','dot','Released '+dateText(app.releaseDate)));
+    if (sortLevels.some(x=>x.key==='updated')) stats.append(make('span','dot','Updated '+dateText(app.currentVersionReleaseDate)));
+    if (sortLevels.some(x=>x.key==='price')) {
+      const price = app.price == null ? null : numeric(app.price);
+      if (price != null) stats.append(make('span','dot',price === 0 ? 'Free' : new Intl.NumberFormat('en-US',{style:'currency',currency:'USD'}).format(price)));
+    }
     content.append(stats);
     const href = appLink(app.trackViewUrl);
     const link = make(href ? 'a' : 'span','view',href ? 'App Store ↗' : 'Link unavailable');
@@ -199,7 +315,7 @@
     return card;
   }
   function render() {
-    els.filter.hidden = sortMode !== 'rating';
+    els.filter.hidden = !sortLevels.some(x=>x.key==='rating');
     if (!lastQuery) return;
     const sorted = sortApps(allApps);
     els.count.textContent = sorted.length+' shown · '+allApps.length+' returned for “'+lastQuery+'”';
@@ -212,12 +328,31 @@
     sorted.forEach(app => frag.append(renderApp(app)));
     els.results.append(frag);
   }
-  els.sorts.addEventListener('click', event => {
-    const btn = event.target.closest('button[data-sort]');
-    if (!btn) return;
-    sortMode = btn.dataset.sort;
-    els.sorts.querySelectorAll('button').forEach(b => b.setAttribute('aria-pressed',String(b===btn)));
-    render();
+  els.add.addEventListener('click',()=>{
+    const unused = SORT_FIELDS.find(x=>!sortLevels.some(level=>level.key===x.key));
+    if (!unused) return;
+    sortLevels.push({key:unused.key,direction:unused.direction});
+    sortChanged();
+  });
+  els.levels.addEventListener('change',event=>{
+    const field=event.target.closest('select[data-sort-field]');
+    if (!field) return;
+    const index=Number(field.dataset.sortField);
+    const info=SORT_FIELDS.find(x=>x.key===field.value);
+    if (!info || sortLevels.some((x,i)=>i!==index && x.key===info.key)) return;
+    sortLevels[index]={key:info.key,direction:info.direction};
+    sortChanged();
+  });
+  els.levels.addEventListener('click',event=>{
+    const button=event.target.closest('button[data-action]');
+    if (!button || button.disabled) return;
+    const index=Number(button.dataset.index), action=button.dataset.action;
+    if (action==='direction') sortLevels[index].direction=sortLevels[index].direction==='desc'?'asc':'desc';
+    else if (action==='remove' && sortLevels.length>1) sortLevels.splice(index,1);
+    else if (action==='up' && index>0) [sortLevels[index-1],sortLevels[index]]=[sortLevels[index],sortLevels[index-1]];
+    else if (action==='down' && index<sortLevels.length-1) [sortLevels[index+1],sortLevels[index]]=[sortLevels[index],sortLevels[index+1]];
+    else return;
+    sortChanged();
   });
   els.min.addEventListener('change',render);
   els.form.addEventListener('submit',async event => {
@@ -251,7 +386,8 @@
       if (request===searchNumber) { els.button.disabled=false; els.button.textContent='Search'; }
     }
   });
-  els.filter.hidden = false;
+  renderSortControls();
+  els.filter.hidden = !sortLevels.some(x=>x.key==='rating');
 })();
 </script>
 </body>
