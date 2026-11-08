@@ -1,0 +1,258 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#f7f8fb">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="AppScope">
+  <title>AppScope — Better App Store search</title>
+  <style>
+    :root { color-scheme:light; font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif; color:#172138; background:#f7f8fb; }
+    * { box-sizing:border-box; }
+    body { margin:0; background:radial-gradient(ellipse 130% 340px at 50% -95px,#dde7ff 0%,transparent 85%),#f7f8fb; min-height:100vh; }
+    button,input,select { font:inherit; }
+    button { cursor:pointer; }
+    main { width:min(940px,100%); margin:0 auto; padding:42px 18px calc(40px + env(safe-area-inset-bottom)); }
+    header { display:flex; align-items:center; justify-content:space-between; gap:15px; margin-bottom:30px; }
+    .identity { display:flex; align-items:center; gap:12px; }
+    .mark { display:grid; place-items:center; width:43px; height:43px; flex:none; border-radius:14px; color:white; font-weight:900; letter-spacing:-2px; background:linear-gradient(140deg,#1d70ef,#7658ed); box-shadow:0 6px 15px #456bda3b; }
+    .brand { font-weight:800; font-size:19px; letter-spacing:-.6px; }
+    .tag { color:#657087; font-size:12px; margin-top:2px; }
+    .pill { font-size:11px; font-weight:750; border:1px solid #d9e2ee; border-radius:100px; background:white; padding:7px 10px; color:#4c5f80; white-space:nowrap; }
+    h1 { font-size:clamp(29px,5.6vw,46px); letter-spacing:-1.8px; line-height:1.1; margin:0 0 10px; }
+    .lede { color:#647089; font-size:15px; margin:0 0 25px; line-height:1.5; }
+    .search { display:flex; gap:8px; background:white; padding:8px; border:1px solid #e1e6f0; box-shadow:0 8px 30px #192e5910; border-radius:17px; }
+    .search input { flex:1; border:0; outline:0; min-width:0; padding:11px 7px 11px 12px; color:#172138; font-size:16px; background:transparent; }
+    .search button { border:0; background:#2767ed; color:white; font-weight:750; border-radius:11px; padding:0 20px; min-height:44px; transition:background .15s; }
+    .search button:hover { background:#1756df; }
+    .search button:disabled { opacity:.58; cursor:progress; }
+    .toolbar { display:flex; align-items:center; flex-wrap:wrap; gap:10px; margin:25px 0 16px; }
+    .toolbar-title { font-size:11px; font-weight:800; text-transform:uppercase; letter-spacing:1.25px; color:#778299; margin-right:3px; }
+    .sorts { display:flex; gap:7px; flex-wrap:wrap; }
+    .sorts button { background:#fff; border:1px solid #e0e5ed; color:#49566e; padding:10px 13px; border-radius:100px; font-size:13px; font-weight:700; transition:all .15s; }
+    .sorts button[aria-pressed="true"] { color:#fff; background:#253754; border-color:#253754; box-shadow:0 3px 10px #213b6529; }
+    .settings { display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:12px; min-height:45px; margin:0 0 15px; }
+    .filter { display:flex; align-items:center; gap:8px; color:#5c6980; font-size:13px; }
+    select { background:#fff; color:#263653; border:1px solid #dee4ed; border-radius:9px; padding:9px 8px; font-size:13px; }
+    .count { font-size:13px; color:#79839a; }
+    .results { display:grid; gap:10px; }
+    .app { display:grid; grid-template-columns:64px minmax(0,1fr) auto; gap:14px; align-items:start; background:#fff; border:1px solid #e8ecf2; border-radius:16px; padding:17px; box-shadow:0 1px 3px #33405508; }
+    .app-icon { width:64px; height:64px; object-fit:cover; border:1px solid #e8edf2; border-radius:16px; background:linear-gradient(130deg,#f0f4fc,#dee8fc); display:grid; place-items:center; color:#4269b5; font-weight:800; font-size:26px; }
+    .app h2 { font-size:16px; line-height:1.28; margin:1px 0 3px; letter-spacing:-.25px; }
+    .developer { color:#7e879a; font-size:12px; margin-bottom:11px; }
+    .stats { display:flex; flex-wrap:wrap; gap:8px 12px; align-items:center; font-size:12px; color:#627088; }
+    .rating { color:#bb781b; font-weight:800; }
+    .dot:before { content:"·"; margin-right:12px; color:#adb4c0; }
+    .view { border:1px solid #dae5fb; background:#eff5ff; color:#2463d7; font-weight:750; font-size:12px; border-radius:100px; padding:10px 12px; text-decoration:none; white-space:nowrap; display:inline-block; margin-top:9px; }
+    .view:hover { background:#dfeaff; }
+    .blank { border:1px dashed #cdd7e6; border-radius:17px; padding:35px 20px; text-align:center; color:#66748a; background:#fff9; line-height:1.55; }
+    .blank strong { color:#253453; }
+    .footnote { margin:22px 3px; color:#8b95a7; font-size:12px; line-height:1.55; }
+    .footnote a { color:#5472a5; }
+    .busy { display:inline-block; width:15px; height:15px; border:2px solid #c3d2f5; border-top-color:#2868e7; border-radius:50%; animation:spin .75s linear infinite; vertical-align:-3px; margin-right:6px; }
+    @keyframes spin { to { transform:rotate(360deg); } }
+    @media(max-width:560px) { main { padding-top:25px; } header { margin-bottom:33px; } .app { grid-template-columns:55px minmax(0,1fr); gap:12px; padding:14px; } .app-icon { width:55px; height:55px; border-radius:13px; } .view { grid-column:2; justify-self:start; margin-top:0; } .toolbar { align-items:start; } .toolbar-title { padding-top:12px; } .sorts { flex:1; } .sorts button { padding:9px 10px; } .search button { padding:0 14px; } }
+    @media(prefers-reduced-motion:reduce) { *,*:before,*:after { animation-duration:.01ms!important; transition-duration:.01ms!important; } }
+  </style>
+</head>
+<body>
+<main>
+  <header>
+    <div class="identity"><div class="mark">A+</div><div><div class="brand">AppScope</div><div class="tag">Independent App Store discovery</div></div></div>
+    <span class="pill">iPhone · US App Store</span>
+  </header>
+  <h1>Find the apps worth finding.</h1>
+  <p class="lede">Search Apple's catalog, then sort the matches your way.</p>
+  <form class="search" id="search-form">
+    <input id="query" type="search" placeholder="Try audio recorder, hiking maps…" aria-label="Search apps" autocomplete="off" maxlength="120" required>
+    <button id="search-button" type="submit">Search</button>
+  </form>
+  <div class="toolbar" aria-label="Sort results">
+    <span class="toolbar-title">Sort by</span>
+    <div class="sorts" id="sorts">
+      <button type="button" data-sort="rating" aria-pressed="true">★ Top rated</button>
+      <button type="button" data-sort="reviews" aria-pressed="false">Most reviewed</button>
+      <button type="button" data-sort="newest" aria-pressed="false">Newest apps</button>
+      <button type="button" data-sort="updated" aria-pressed="false">Recent updates</button>
+      <button type="button" data-sort="relevance" aria-pressed="false">Relevance</button>
+    </div>
+  </div>
+  <div class="settings">
+    <label class="filter" id="rating-filter">Minimum ratings
+      <select id="minimum-ratings" aria-label="Minimum rating count">
+        <option value="0">Any</option><option value="10">10+</option><option value="25" selected>25+</option><option value="100">100+</option><option value="1000">1,000+</option>
+      </select>
+    </label>
+    <span class="count" id="count">Search up to 200 matches at a time</span>
+  </div>
+  <section id="results" class="results" aria-live="polite" aria-label="App search results">
+    <div class="blank"><strong>Find something better.</strong><br>Start with a topic, a feature, or an app category.</div>
+  </section>
+  <p class="footnote">Not affiliated with Apple. Ratings and dates come from Apple's public catalog. Sorting applies to the results returned for your query (maximum 200), not every app in the App Store. “Most reviewed” is not a measure of downloads. App icons and links lead to their App Store listings. <a href="https://performance-partners.apple.com/search-api" target="_blank" rel="noopener noreferrer">Data source</a>.</p>
+</main>
+<script>
+(() => {
+  'use strict';
+  const els = {
+    form: document.querySelector('#search-form'),
+    query: document.querySelector('#query'),
+    button: document.querySelector('#search-button'),
+    sorts: document.querySelector('#sorts'),
+    min: document.querySelector('#minimum-ratings'),
+    filter: document.querySelector('#rating-filter'),
+    count: document.querySelector('#count'),
+    results: document.querySelector('#results')
+  };
+  let allApps = [];
+  let sortMode = 'rating';
+  let lastQuery = '';
+  let searchNumber = 0;
+  let jsonpNumber = 0;
+
+  function make(tag, className, value) {
+    const el = document.createElement(tag);
+    if (className) el.className = className;
+    if (value !== undefined) el.textContent = value;
+    return el;
+  }
+  function appLink(raw) {
+    try {
+      const url = new URL(raw);
+      return url.protocol === 'https:' && (url.hostname === 'apps.apple.com' || url.hostname === 'itunes.apple.com') ? url.href : null;
+    } catch (_) { return null; }
+  }
+  function iconLink(raw) {
+    try {
+      const url = new URL(raw);
+      return url.protocol === 'https:' && (url.hostname.endsWith('.mzstatic.com') || url.hostname === 'mzstatic.com') ? url.href : null;
+    } catch (_) { return null; }
+  }
+  function numeric(value) { const n = Number(value); return Number.isFinite(n) ? n : 0; }
+  function asDate(value) { const t = Date.parse(value || ''); return Number.isFinite(t) ? t : 0; }
+  function dateText(value) {
+    const t = asDate(value);
+    return t ? new Intl.DateTimeFormat('en-US',{month:'short',day:'numeric',year:'numeric'}).format(t) : 'Unknown';
+  }
+  function numberText(value) { return new Intl.NumberFormat('en-US').format(numeric(value)); }
+  function jsonp(url) {
+    return new Promise((resolve, reject) => {
+      const cb = '__appscope_result_' + (++jsonpNumber) + '_' + Date.now();
+      const script = document.createElement('script');
+      let done = false;
+      const finish = (err, data) => {
+        if (done) return;
+        done = true;
+        clearTimeout(timer);
+        script.remove();
+        delete window[cb];
+        if (err) reject(err); else resolve(data);
+      };
+      window[cb] = data => finish(null,data);
+      script.onerror = () => finish(new Error('Apple did not respond to the search request.'));
+      const timer = setTimeout(() => finish(new Error('The App Store request timed out.')), 18000);
+      script.src = url + '&callback=' + encodeURIComponent(cb);
+      document.head.appendChild(script);
+    });
+  }
+  function showMessage(heading, message) {
+    els.results.replaceChildren();
+    const box = make('div','blank');
+    box.append(make('strong','',heading),document.createElement('br'),document.createTextNode(message));
+    els.results.append(box);
+  }
+  function sortApps(apps) {
+    const result = apps.map((app,index) => ({app,index}));
+    if (sortMode === 'rating') {
+      const minimum = numeric(els.min.value);
+      return result.filter(({app}) => numeric(app.userRatingCount) >= minimum)
+        .sort((a,b) => numeric(b.app.averageUserRating)-numeric(a.app.averageUserRating) || numeric(b.app.userRatingCount)-numeric(a.app.userRatingCount) || a.index-b.index)
+        .map(({app})=>app);
+    }
+    const compare = {
+      reviews:(a,b) => numeric(b.userRatingCount)-numeric(a.userRatingCount) || numeric(b.averageUserRating)-numeric(a.averageUserRating),
+      newest:(a,b) => asDate(b.releaseDate)-asDate(a.releaseDate),
+      updated:(a,b) => asDate(b.currentVersionReleaseDate)-asDate(a.currentVersionReleaseDate),
+      relevance:() => 0
+    }[sortMode];
+    return result.sort((a,b)=>compare(a.app,b.app)||a.index-b.index).map(({app})=>app);
+  }
+  function renderApp(app) {
+    const card = make('article','app');
+    const artwork = iconLink(app.artworkUrl100 || app.artworkUrl60);
+    const icon = artwork ? make('img','app-icon') : make('div','app-icon',(app.trackName||'?').slice(0,1).toUpperCase());
+    if (artwork) { icon.src=artwork; icon.alt=''; icon.loading='lazy'; }
+    const content = make('div');
+    content.append(make('h2','',app.trackName||'Untitled app'), make('div','developer',app.artistName||'Unknown developer'));
+    const stats = make('div','stats');
+    const rating = numeric(app.averageUserRating);
+    stats.append(make('span',rating ? 'rating' : '',rating ? '★ '+rating.toFixed(1)+' / 5' : 'Unrated'));
+    stats.append(make('span','dot',numberText(app.userRatingCount)+' ratings'));
+    if (app.primaryGenreName) stats.append(make('span','dot',app.primaryGenreName));
+    const dateField = sortMode === 'updated' ? app.currentVersionReleaseDate : app.releaseDate;
+    stats.append(make('span','dot',(sortMode === 'updated' ? 'Updated ' : 'Released ')+dateText(dateField)));
+    content.append(stats);
+    const href = appLink(app.trackViewUrl);
+    const link = make(href ? 'a' : 'span','view',href ? 'App Store ↗' : 'Link unavailable');
+    if (href) { link.href=href; link.target='_blank'; link.rel='noopener noreferrer'; }
+    card.append(icon,content,link);
+    return card;
+  }
+  function render() {
+    els.filter.hidden = sortMode !== 'rating';
+    if (!lastQuery) return;
+    const sorted = sortApps(allApps);
+    els.count.textContent = sorted.length+' shown · '+allApps.length+' returned for “'+lastQuery+'”';
+    els.results.replaceChildren();
+    if (!sorted.length) {
+      showMessage('No matching apps.',allApps.length ? 'Try reducing the minimum number of ratings.' : 'Try a broader search term.');
+      return;
+    }
+    const frag = document.createDocumentFragment();
+    sorted.forEach(app => frag.append(renderApp(app)));
+    els.results.append(frag);
+  }
+  els.sorts.addEventListener('click', event => {
+    const btn = event.target.closest('button[data-sort]');
+    if (!btn) return;
+    sortMode = btn.dataset.sort;
+    els.sorts.querySelectorAll('button').forEach(b => b.setAttribute('aria-pressed',String(b===btn)));
+    render();
+  });
+  els.min.addEventListener('change',render);
+  els.form.addEventListener('submit',async event => {
+    event.preventDefault();
+    const q = els.query.value.trim();
+    if (!q) return;
+    const request = ++searchNumber;
+    els.button.disabled = true;
+    els.button.textContent = 'Searching…';
+    els.count.textContent = 'Searching the US App Store';
+    showMessage('Searching Apple’s catalog…','One moment while the apps are retrieved.');
+    try {
+      const params = new URLSearchParams({term:q,country:'us',media:'software',entity:'software',limit:'200'});
+      const json = await jsonp('https://itunes.apple.com/search?'+params);
+      if (request!==searchNumber) return;
+      if (!json || !Array.isArray(json.results)) throw new Error('Apple returned an unexpected response.');
+      const seen = new Set();
+      allApps = json.results.filter(app => {
+        const id = app.trackId;
+        if (!id || seen.has(id)) return false;
+        seen.add(id); return true;
+      });
+      lastQuery = q;
+      render();
+    } catch (err) {
+      if (request!==searchNumber) return;
+      lastQuery=''; allApps=[];
+      els.count.textContent = 'Could not load results';
+      showMessage('Search unavailable.',err.message+' Try again in a moment. Some embedded previews prevent external requests; use the hosted page in Safari.');
+    } finally {
+      if (request===searchNumber) { els.button.disabled=false; els.button.textContent='Search'; }
+    }
+  });
+  els.filter.hidden = false;
+})();
+</script>
+</body>
+</html>
